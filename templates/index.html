@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<h2>Текущие аукционы</h2>
+<ul>
+    {% for item in items %}
+    <div class="item">
+        <img src="{{ url_for('static', filename='images/' + item.image_filename) }}" alt="{{ item.title }}">
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.description }}</p>
+        <p><strong>Начальная цена:</strong> {{ item.starting_price }} ₽</p>
+    </div>
+    {% endfor %}    
+</ul>
+{% endblock %}
