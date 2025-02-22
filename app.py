@@ -119,17 +119,37 @@ def auction(item_id):
 @login_required
 def end_auction(item_id):
     item = AuctionItem.query.get_or_404(item_id)
+
     if item.user_id != current_user.id:
         flash('Вы не можете завершить этот аукцион!', 'danger')
         return redirect(url_for('auction', item_id=item.id))
-    if datetime.utcnow() < item.end_time:
-        flash('Аукцион еще не завершен!', 'warning')
+
+    if not item.is_active:
+        flash('Этот аукцион уже завершен!', 'warning')
         return redirect(url_for('auction', item_id=item.id))
+
     winner = item.get_winner()
+    item.is_active = False  # Делаем аукцион неактивным
+    db.session.commit()
+
     if winner:
         flash(f'Аукцион завершен! Победитель: {winner}', 'success')
     else:
         flash('Аукцион завершен, но ставок не было.', 'info')
+
+    return redirect(url_for('auction', item_id=item.id))
+
+@app.route('/raise_bid/<int:item_id>', methods=['POST'])
+@login_required
+def raise_bid(item_id):
+    item = AuctionItem.query.get_or_404(item_id)
+    increment = 10 
+    current_bid = item.get_highest_bid()
+    new_bid_amount = current_bid + increment
+    bid = Bid(amount=new_bid_amount, user_id=current_user.id, item_id=item.id)
+    db.session.add(bid)
+    db.session.commit()
+    flash(f'Ставка повышена до {new_bid_amount:.2f} руб.', 'success')
     return redirect(url_for('auction', item_id=item.id))
 
 @app.route('/logout')

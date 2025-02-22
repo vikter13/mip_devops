@@ -4,10 +4,12 @@
 <h1>{{ item.title }}</h1>
 <img src="{{ url_for('static', filename='images/' + item.image_filename) }}" alt="{{ item.title }}" width="300">
 <p>{{ item.description }}</p>
-<p>Начальная цена: {{ item.starting_price }} руб.</p>
-<p>Текущая ставка: {{ item.get_highest_bid() }} руб.</p>
+<p>Начальная цена: {{ item.starting_price|round(2) }} руб.</p>
+<p>Текущая ставка: {{ item.get_highest_bid()|round(2) }} руб.</p>
+<p>Окончание аукциона: {{ item.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
-{% if current_user.is_authenticated %}
+{% if current_user.is_authenticated and item.is_active %}
+    <h2>Сделать ставку</h2>
     <form method="POST">
         {{ form.hidden_tag() }}
         <p>
@@ -15,21 +17,25 @@
             {{ form.submit() }}
         </p>
     </form>
+
+    <h2>Повысить ставку</h2>
+    <form method="POST" action="{{ url_for('raise_bid', item_id=item.id) }}">
+        <button type="submit">Повысить ставку на 10 руб.</button>
+    </form>
 {% else %}
     <p>Для участия в торгах <a href="{{ url_for('login') }}">войдите</a> в систему.</p>
 {% endif %}
 
-<h2>Ставки</h2>
-<ul>
-    {% for bid in bids %}
-        <li>{{ bid.bidder.username }}: {{ bid.amount }} руб. ({{ bid.timestamp }})</li>
-    {% endfor %}
-</ul>
-
-{% if current_user.id == item.user_id %}
+{% if current_user.id == item.user_id and item.is_active %}
     <form method="POST" action="{{ url_for('end_auction', item_id=item.id) }}">
         <button type="submit">Завершить аукцион</button>
     </form>
 {% endif %}
 
+<h2>Ставки</h2>
+<ul>
+    {% for bid in bids %}
+        <li>{{ bid.bidder.username }}: {{ bid.amount|round(2) }} руб. ({{ bid.timestamp }})</li>
+    {% endfor %}
+</ul>
 {% endblock %}

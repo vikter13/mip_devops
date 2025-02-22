@@ -19,18 +19,19 @@ class AuctionItem(db.Model):
     starting_price = db.Column(db.Float, nullable=False)
     image_filename = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)  
-    bids = db.relationship('Bid', backref='auction_item', lazy=True)
-    
+    end_time = db.Column(db.DateTime, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)  # Новое поле (по умолчанию аукцион активен)
+
+    bids = db.relationship('Bid', backref='item', lazy=True)
+
     def get_highest_bid(self):
-        """Возвращает максимальную ставку на данный лот"""
-        highest_bid = Bid.query.filter_by(item_id=self.id).order_by(Bid.amount.desc()).first()
-        return highest_bid.amount if highest_bid else self.starting_price
+        highest_bid = db.session.query(db.func.max(Bid.amount)).filter(Bid.item_id == self.id).scalar()
+        return highest_bid if highest_bid else self.starting_price
 
     def get_winner(self):
-        """Определяет победителя аукциона"""
         highest_bid = Bid.query.filter_by(item_id=self.id).order_by(Bid.amount.desc()).first()
         return highest_bid.bidder.username if highest_bid else None
+
 
 class Bid(db.Model):
     id = db.Column(db.Integer, primary_key=True)

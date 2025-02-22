@@ -30,6 +30,8 @@
                     <p>Начальная цена: {{ item.starting_price|round(2) }} руб.</p>
                     <p>Окончание аукциона: {{ item.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
                     <img src="{{ url_for('static', filename='images/' + item.image_filename) }}" alt="{{ item.title }}" width="200">
+                    
+                    <p><a href="{{ url_for('auction', item_id=item.id) }}" class="auction-button">Перейти к аукциону</a></p>
                 </li>
                 {% endfor %}
             </ul>
