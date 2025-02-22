@@ -19,19 +19,18 @@
             {% endif %}
         </nav>
     </header>
-    <main>
+    <main class="container">
         <h2>Список товаров</h2>
         {% if items %}
             <ul>
                 {% for item in items %}
-                <li>
+                <li class="item">
                     <h3>{{ item.title }}</h3>
-                    <p>{{ item.description }}</p>
-                    <p>Начальная цена: {{ item.starting_price|round(2) }} руб.</p>
-                    <p>Окончание аукциона: {{ item.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
                     <img src="{{ url_for('static', filename='images/' + item.image_filename) }}" alt="{{ item.title }}" width="200">
-                    
-                    <p><a href="{{ url_for('auction', item_id=item.id) }}" class="auction-button">Перейти к аукциону</a></p>
+                    <p>{{ item.description }}</p>
+                    <p><strong>Начальная цена:</strong> {{ item.starting_price|round(2) }} руб.</p>
+                    <p><strong>Окончание аукциона:</strong> {{ item.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <a href="{{ url_for('auction', item_id=item.id) }}" class="auction-button">Перейти к аукциону</a>
                 </li>
                 {% endfor %}
             </ul>
