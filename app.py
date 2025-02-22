@@ -8,9 +8,10 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 from flask_wtf.file import FileField, FileAllowed
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime, timedelta
 
-from database import db, User, AuctionItem, bcrypt
-from forms import AddItemForm
+from database import db, User, AuctionItem, bcrypt, Bid
+from forms import AddItemForm, BidForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'mysecretkey'
@@ -53,12 +54,16 @@ def add_item():
         filename = secure_filename(image_file.filename)
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         image_file.save(image_path)
+
+        end_time = datetime.utcnow() + timedelta(days=7)
+
         new_item = AuctionItem(
             title=form.title.data,
             description=form.description.data,
             starting_price=form.starting_price.data,
             image_filename=filename,
-            user_id=current_user.id
+            user_id=current_user.id,
+            end_time=end_time
         )
         db.session.add(new_item)
         db.session.commit()
@@ -89,6 +94,43 @@ def login():
         else:
             flash('Неверные данные!', 'danger')
     return render_template('login.html', form=form)
+
+@app.route('/auction/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def auction(item_id):
+    item = AuctionItem.query.get_or_404(item_id)
+    form = BidForm()
+
+    if form.validate_on_submit():
+        highest_bid = item.get_highest_bid()
+        if form.amount.data > highest_bid:
+            bid = Bid(amount=form.amount.data, user_id=current_user.id, item_id=item.id)
+            db.session.add(bid)
+            db.session.commit()
+            flash('Ставка принята!', 'success')
+        else:
+            flash('Ставка должна быть выше текущей максимальной!', 'danger')
+        return redirect(url_for('auction', item_id=item.id))
+
+    bids = Bid.query.filter_by(item_id=item.id).order_by(Bid.amount.desc()).all()
+    return render_template('auction.html', item=item, form=form, bids=bids)
+
+@app.route('/end_auction/<int:item_id>', methods=['POST'])
+@login_required
+def end_auction(item_id):
+    item = AuctionItem.query.get_or_404(item_id)
+    if item.user_id != current_user.id:
+        flash('Вы не можете завершить этот аукцион!', 'danger')
+        return redirect(url_for('auction', item_id=item.id))
+    if datetime.utcnow() < item.end_time:
+        flash('Аукцион еще не завершен!', 'warning')
+        return redirect(url_for('auction', item_id=item.id))
+    winner = item.get_winner()
+    if winner:
+        flash(f'Аукцион завершен! Победитель: {winner}', 'success')
+    else:
+        flash('Аукцион завершен, но ставок не было.', 'info')
+    return redirect(url_for('auction', item_id=item.id))
 
 @app.route('/logout')
 @login_required

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ item.title }}</h1>
+<img src="{{ url_for('static', filename='images/' + item.image_filename) }}" alt="{{ item.title }}" width="300">
+<p>{{ item.description }}</p>
+<p>Начальная цена: {{ item.starting_price }} руб.</p>
+<p>Текущая ставка: {{ item.get_highest_bid() }} руб.</p>
+
+{% if current_user.is_authenticated %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.amount.label }} {{ form.amount(size=10) }}
+            {{ form.submit() }}
+        </p>
+    </form>
+{% else %}
+    <p>Для участия в торгах <a href="{{ url_for('login') }}">войдите</a> в систему.</p>
+{% endif %}
+
+<h2>Ставки</h2>
+<ul>
+    {% for bid in bids %}
+        <li>{{ bid.bidder.username }}: {{ bid.amount }} руб. ({{ bid.timestamp }})</li>
+    {% endfor %}
+</ul>
+
+{% if current_user.id == item.user_id %}
+    <form method="POST" action="{{ url_for('end_auction', item_id=item.id) }}">
+        <button type="submit">Завершить аукцион</button>
+    </form>
+{% endif %}
+
+{% endblock %}
