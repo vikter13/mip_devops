@@ -9,7 +9,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URI=mysql+pymysql://user:password@db:3306/app_db
+      - DATABASE_URI=mysql+pymysql://root:rootpass@db:3306/app_db
     restart: always
     volumes:
       - ./static:/app/static
@@ -21,7 +21,7 @@ services:
       - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: app_bd
+      MYSQL_DATABASE: app_db
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     volumes:
