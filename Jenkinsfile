@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDS = credentials('docker-hub-credentials')
-        DOCKER_IMAGE = "romkapremium/flask_app"
+        DOCKER_HUB_CREDS = credentials('local-docker-hub')
+        DOCKER_IMAGE = "nikitorik/flask_app"
     }
 
     stages {
