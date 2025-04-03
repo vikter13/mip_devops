@@ -32,9 +32,10 @@ pipeline {
         stage('Push to Local Registry') {
             steps {
                 sh '''
-                    docker login -u $REGISTRY_CREDS_USR --password-stdin $REGISTRY_ADDRESS <<< $REGISTRY_CREDS_PSW
-                    docker push $DOCKER_IMAGE:$BUILD_NUMBER
-                    docker push $DOCKER_IMAGE:latest
+                    #!/bin/bash
+                    echo "$REGISTRY_CREDS_PSW" | docker login -u "$REGISTRY_CREDS_USR" --password-stdin "$REGISTRY_ADDRESS"
+                    docker push "$DOCKER_IMAGE:$BUILD_NUMBER"
+                    docker push "$DOCKER_IMAGE:latest"
                 '''
             }
         }
