@@ -4,7 +4,7 @@ pipeline {
     environment {
         REGISTRY_CREDS = credentials('local-registry-creds')
         REGISTRY_ADDRESS = "192.168.1.113:5000"
-        DOCKER_IMAGE = "${REGISTRY_ADDRESS}/nikitorik/flask_app"
+        DOCKER_IMAGE = "${REGISTRY_ADDRESS}/romka_premium/flask_app"
         GIT_CREDS = credentials('github-ssh-key')
     }
 
