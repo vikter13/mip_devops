@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         REGISTRY_CREDS = credentials('local-registry-creds')
-        REGISTRY_ADDRESS = "192.168.1.113:5000"
-        DOCKER_IMAGE = "${REGISTRY_ADDRESS}/romka_premium/flask_app"
+        REGISTRY_ADDRESS = "192.168.1.203:5000"
+        DOCKER_IMAGE = "${REGISTRY_ADDRESS}/nikitorik/flask_app"
+        GIT_CREDS = credentials('github-ssh-key')
     }
 
     stages {
@@ -14,7 +15,7 @@ pipeline {
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[
-                        url: 'git@github.com:vikter13/mip_devops.git',
+                        url: 'https://github.com/vikter13/mip_devops.git',
                         credentialsId: 'github-ssh-key'
                     ]]
                 ])
@@ -31,10 +32,7 @@ pipeline {
         stage('Push to Local Registry') {
             steps {
                 sh '''
-                    echo "Logging in to local registry"
                     docker login -u $REGISTRY_CREDS_USR --password-stdin $REGISTRY_ADDRESS <<< $REGISTRY_CREDS_PSW
-                    
-                    echo "Pushing images"
                     docker push $DOCKER_IMAGE:$BUILD_NUMBER
                     docker push $DOCKER_IMAGE:latest
                 '''
