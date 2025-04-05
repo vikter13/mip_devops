@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аукционы</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Аукционы фирмы</h1>
+        <nav>
+            <a href="{{ url_for('home') }}">Главная</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('add_item') }}">Добавить товар</a>
+                <a href="{{ url_for('logout') }}">Выход</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Вход</a>
+                <a href="{{ url_for('register') }}">Регистрация</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main class="container">
+        <h2>Список товаров</h2>
+        {% if items %}
+            <ul>
+                {% for item in items %}
+                <li class="item">
+                    <h3>{{ item.title }}</h3>
+                    <img src="{{ url_for('static', filename='images/' + item.image_filename) }}" alt="{{ item.title }}" width="200">
+                    <p>{{ item.description }}</p>
+                    <p><strong>Начальная цена:</strong> {{ item.starting_price|round(2) }} руб.</p>
+                    <p><strong>Окончание аукциона:</strong> {{ item.end_time.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    <a href="{{ url_for('auction', item_id=item.id) }}" class="auction-button">Перейти к аукциону</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Товары не найдены</p>
+        {% endif %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Добавить товар{% endblock %}
+{% block content %}
+<h2>Добавить товар на аукцион</h2>
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    
+    <label for="title">Название товара:</label>
+    {{ form.title() }}
+    
+    <label for="description">Описание:</label>
+    {{ form.description() }}
+    
+    <label for="starting_price">Начальная цена:</label>
+    {{ form.starting_price() }}
+    
+    <label for="image">Изображение:</label>
+    {{ form.image() }}
+    
+    <button type="submit">Добавить</button>
+</form>
+{% endblock %}

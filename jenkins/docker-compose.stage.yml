@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  app:
+    image: username/flask_app:latest
+    container_name: flask_app_stage
+    ports:
+      - "5001:5000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URI=mysql+pymysql://user:password@db:3306/app_db
+    restart: always
+    volumes:
+      - ./static:/app/static
+
+  db:
+    image: mysql:5.7
+    container_name: mysql_db_stage
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - mysql_data_stage:/var/lib/mysql
+    restart: always
+
+volumes:
+  mysql_data_stage:
