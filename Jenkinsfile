@@ -2,15 +2,23 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDS = credentials('local-docker-hub')
-        DOCKER_REGISTRY = "5.101.69.113:5000"
-        DOCKER_IMAGE = "${DOCKER_REGISTRY}/nikitorik/flask_app"
+        REGISTRY_CREDS = credentials('local-registry-creds')
+        REGISTRY_ADDRESS = "192.168.1.113:5000"
+        DOCKER_IMAGE = "${REGISTRY_ADDRESS}/romka_premium/flask_app"
+        GIT_CREDS = credentials('github-ssh-key')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/vikter13/mip_devops.git',
+                        credentialsId: 'github-ssh-key'
+                    ]]
+                ])
             }
         }
 
@@ -18,14 +26,17 @@ pipeline {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER .'
                 sh 'docker tag $DOCKER_IMAGE:$BUILD_NUMBER $DOCKER_IMAGE:latest'
-
+            }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push to Local Registry') {
             steps {
-                sh 'echo $DOCKER_REGISTRY_CREDS_PSW | docker login -u $DOCKER_REGISTRY_CREDS_USR $DOCKER_REGISTRY'
-                sh 'docker push $DOCKER_IMAGE:$BUILD_NUMBER'
-                sh 'docker push $DOCKER_IMAGE:latest'
+                sh '''
+                    #!/bin/bash
+                    echo "$REGISTRY_CREDS_PSW" | docker login -u "$REGISTRY_CREDS_USR" --password-stdin "$REGISTRY_ADDRESS"
+                    docker push "$DOCKER_IMAGE:$BUILD_NUMBER"
+                    docker push "$DOCKER_IMAGE:latest"
+                '''
             }
         }
 
@@ -39,7 +50,7 @@ pipeline {
 
     post {
         always {
-            sh 'docker logout'
+            sh 'docker logout $REGISTRY_ADDRESS'
         }
     }
 }
