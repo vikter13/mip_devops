@@ -25,7 +25,7 @@ pipeline {
         stage('Install Analyzers') {
             steps {
                 sh '''
-                    pip3 install pylint bandit trufflehog
+                    pip install pylint bandit trufflehog
                 '''
             }
         }
