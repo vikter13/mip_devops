@@ -25,6 +25,8 @@ pipeline {
         stage('Install Analyzers') {
             steps {
                 sh '''
+                    apt-get install -y python3 python3-pip
+                    pip install --upgrade pip
                     pip install pylint bandit trufflehog
                 '''
             }
