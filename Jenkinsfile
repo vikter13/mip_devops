@@ -48,11 +48,12 @@ pipeline {
             steps {
                 // Запускаем Bandit, сохраняем отчёт и падаем при CRITICAL
                 sh '''
-                  bandit -r . -f json -o bandit_report.json
-                  if grep -q '"issue_severity": "CRITICAL"' bandit_report.json; then
-                    echo "Bandit detected CRITICAL vulnerabilities"
-                    exit 1
-                  fi
+                    . venv/bin/activate
+                    bandit -r . -f json -o bandit_report.json
+                    if grep -q '"issue_severity": "CRITICAL"' bandit_report.json; then
+                        echo "Bandit detected CRITICAL vulnerabilities"
+                        exit 1
+                    fi
                 '''
             }
         }
@@ -60,11 +61,12 @@ pipeline {
             steps {
                 // Запускаем TruffleHog и падаем при любом найденном секрете
                 sh '''
-                  trufflehog filesystem . --json > trufflehog_report.json || true
-                  if [ -s trufflehog_report.json ]; then
-                    echo "TruffleHog detected secrets"
-                    exit 1
-                  fi
+                    . venv/bin/activate
+                    trufflehog filesystem . --json > trufflehog_report.json || true
+                    if [ -s trufflehog_report.json ]; then
+                        echo "TruffleHog detected secrets"
+                        exit 1
+                    fi
                 '''
             }
         }
