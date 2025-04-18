@@ -22,6 +22,52 @@ pipeline {
             }
         }
 
+        stage('Install Analyzers') {
+            steps {
+                sh '''
+                    apt-get install -y python3 python3-pip
+                    pip install --upgrade pip
+                    pip install pylint bandit trufflehog
+                '''
+            }
+        }
+        stage('Code Quality') {
+            steps {
+                // Запускаем Pylint и останавливаем билд при ошибках уровней E или F
+                sh '''
+                    pylint app.py database.py forms.py --exit-zero > pylint_report.txt
+                    echo "Pylint Report:"
+                    cat pylint_report.txt
+                    echo "Ошибки уровней E и F:"
+                    grep -E '^[EF]' pylint_report.txt || echo "Нет ошибок уровней E или F"
+                '''
+            }
+        }
+        stage('Security Scan') {
+            steps {
+                // Запускаем Bandit, сохраняем отчёт и падаем при CRITICAL
+                sh '''
+                  bandit -r . -f json -o bandit_report.json
+                  if grep -q '"issue_severity": "CRITICAL"' bandit_report.json; then
+                    echo "Bandit detected CRITICAL vulnerabilities"
+                    exit 1
+                  fi
+                '''
+            }
+        }
+        stage('Secrets Detection') {
+            steps {
+                // Запускаем TruffleHog и падаем при любом найденном секрете
+                sh '''
+                  trufflehog filesystem . --json > trufflehog_report.json || true
+                  if [ -s trufflehog_report.json ]; then
+                    echo "TruffleHog detected secrets"
+                    exit 1
+                  fi
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER .'
