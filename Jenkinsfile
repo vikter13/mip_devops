@@ -50,7 +50,7 @@ pipeline {
                 // Запускаем Bandit, сохраняем отчёт и падаем при CRITICAL
                 sh '''
                     . venv/bin/activate
-                    bandit -r . --exclude venv,migrations,tests -f json -o bandit_report.json || true
+                    bandit -r . --exclude ./venv -f json -o bandit_report.json || true
 
                     echo "=== Bandit JSON Report ==="
                     cat bandit_report.json
