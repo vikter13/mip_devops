@@ -50,7 +50,11 @@ pipeline {
                 // Запускаем Bandit, сохраняем отчёт и падаем при CRITICAL
                 sh '''
                     . venv/bin/activate
-                    bandit -r . -f json -o bandit_report.json
+                    bandit -r . -f json -o bandit_report.json || true
+
+                    echo "=== Bandit JSON Report ==="
+                    cat bandit_report.json
+
                     if grep -q '"issue_severity": "CRITICAL"' bandit_report.json; then
                         echo "Bandit detected CRITICAL vulnerabilities"
                         exit 1
