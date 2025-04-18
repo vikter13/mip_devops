@@ -35,6 +35,7 @@ pipeline {
             steps {
                 // Запускаем Pylint и останавливаем билд при ошибках уровней E или F
                 sh '''
+                    . venv/bin/activate
                     pylint app.py database.py forms.py --exit-zero > pylint_report.txt
                     echo "Pylint Report:"
                     cat pylint_report.txt
