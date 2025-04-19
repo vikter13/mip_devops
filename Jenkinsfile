@@ -108,7 +108,7 @@ pipeline {
             }
         }
         
-        stage('Run Tests') {
+        stage('Run Build and Test') {
             parallel {
                 stage('Code Quality') {
                     steps {
