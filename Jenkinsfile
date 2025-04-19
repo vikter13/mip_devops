@@ -34,34 +34,61 @@ pipeline {
         }
         stage('Code Quality') {
             steps {
-                // Запускаем Pylint и останавливаем билд при ошибках уровней E или F
                 sh '''
                     . venv/bin/activate
-                    pylint app.py database.py forms.py --exit-zero > pylint_report.txt
-                    echo "Pylint Report:"
+                    
+                    # Переходим в целевую директорию
+                    cd /root/oboldui/mip_devops
+                    
+                    # Запускаем Pylint для всех .py файлов (рекурсивно)
+                    echo "Scanning Python files in: $(pwd)"
+                    find . -name "*.py" | xargs pylint --exit-zero > pylint_report.txt
+                    
+                    # Выводим отчёт
+                    echo "=== Pylint Report ==="
                     cat pylint_report.txt
-                    echo "Ошибки уровней E и F:"
-                    grep -E '^[EF]' pylint_report.txt || echo "Нет ошибок уровней E или F"
-                '''
-            }
-        }
-        stage('Security Scan') {
-            steps {
-                // Запускаем Bandit, сохраняем отчёт и падаем при CRITICAL
-                sh '''
-                    . venv/bin/activate
-                    bandit -r . --exclude ./venv -f json -o bandit_report.json || true
-
-                    echo "=== Bandit JSON Report ==="
-                    cat bandit_report.json
-
-                    if grep -q '"issue_severity": "CRITICAL"' bandit_report.json; then
-                        echo "Bandit detected CRITICAL vulnerabilities"
-                        exit 1
+                    
+                    # Проверяем ошибки уровней E (Error) и F (Fatal)
+                    ERROR_COUNT=$(grep -E '^[EF]' pylint_report.txt | wc -l)
+                    if [ "$ERROR_COUNT" -gt 0 ]; then
+                        echo "Found $ERROR_COUNT Pylint errors (level E/F):"
+                        grep -E '^[EF]' pylint_report.txt
+                        exit 1  # Падаем при ошибках
+                    else
+                        echo "No Pylint errors (level E/F) found."
                     fi
                 '''
             }
         }
+
+        stage('Security Scan') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    
+                    # Переходим в целевую директорию
+                    cd /root/oboldui/mip_devops
+                    
+                    # Запускаем Bandit (рекурсивно, исключая venv)
+                    echo "Running Bandit scan in: $(pwd)"
+                    bandit -r . --exclude ./venv -f json -o bandit_report.json || true
+                    
+                    # Выводим отчёт (кратко)
+                    echo "=== Bandit Report Summary ==="
+                    jq '.results[] | "\(.issue_severity): \(.test_name) in \(.filename):\(.line_number)"' bandit_report.json
+                    
+                    # Проверяем CRITICAL-уязвимости
+                    if jq -e '.results[] | select(.issue_severity == "CRITICAL")' bandit_report.json >/dev/null; then
+                        echo "ERROR: Bandit detected CRITICAL vulnerabilities:"
+                        jq '.results[] | select(.issue_severity == "CRITICAL")' bandit_report.json
+                        exit 1
+                    else
+                        echo "No CRITICAL vulnerabilities found."
+                    fi
+                '''
+            }
+        }
+
         stage('Secrets Detection') {
             steps {
                 sh '''
