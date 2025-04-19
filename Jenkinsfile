@@ -68,6 +68,10 @@ pipeline {
                 sh '''
                     . venv/bin/activate
                     trufflehog filesystem . --json > trufflehog_report.json || true
+
+                    echo "=== TruffleHog JSON Report ==="
+                    cat trufflehog_report.json
+
                     if [ -s trufflehog_report.json ]; then
                         echo "TruffleHog detected secrets"
                         exit 1
