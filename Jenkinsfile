@@ -64,17 +64,26 @@ pipeline {
         }
         stage('Secrets Detection') {
             steps {
-                // Запускаем TruffleHog и падаем при любом найденном секрете
                 sh '''
                     . venv/bin/activate
+                    
+                    # Переходим в целевую директорию и сканируем её
+                    cd /root/oboldui/mip_devops
+                    
+                    # Запускаем TruffleHog (сканируем текущую директорию рекурсивно)
+                    echo "Scanning for secrets in: $(pwd)"
                     trufflehog filesystem . --json > trufflehog_report.json || true
-
-                    echo "=== TruffleHog JSON Report ==="
+                    
+                    # Выводим отчет (для логов)
+                    echo "=== TruffleHog Report ==="
                     cat trufflehog_report.json
-
+                    
+                    # Проверяем, есть ли найденные секреты (непустой файл = ошибка)
                     if [ -s trufflehog_report.json ]; then
-                        echo "TruffleHog detected secrets"
+                        echo "ERROR: TruffleHog detected secrets in /root/oboldui/mip_devops!"
                         exit 1
+                    else
+                        echo "No secrets found."
                     fi
                 '''
             }
