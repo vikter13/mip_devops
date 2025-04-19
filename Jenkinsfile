@@ -39,7 +39,7 @@ pipeline {
                         sh '''
                             . venv/bin/activate
                             
-                            cd /root/oboldui/mip_devops
+                            # cd /root/oboldui/mip_devops
                             
                             echo "Scanning Python files in: $(pwd)"
                             find . -name "*.py" | xargs pylint --exit-zero > pylint_report.txt
@@ -64,7 +64,7 @@ pipeline {
                         sh '''
                             . venv/bin/activate
                             
-                            cd /root/oboldui/mip_devops
+                            # cd /root/oboldui/mip_devops
                             
                             echo "Running Bandit scan in: $(pwd)"
                             bandit -r . --exclude ./venv -f json -o bandit_report.json || true
@@ -88,7 +88,7 @@ pipeline {
                         sh '''
                             . venv/bin/activate
                             
-                            cd /root/oboldui/mip_devops
+                            # cd /root/oboldui/mip_devops
                             
                             echo "Scanning for secrets in: $(pwd)"
                             trufflehog filesystem . --json > trufflehog_report.json || true
