@@ -32,6 +32,7 @@ pipeline {
                 '''
             }
         }
+        
         stage('Code Quality') {
             steps {
                 sh '''
@@ -75,7 +76,7 @@ pipeline {
                     
                     # Выводим отчёт (кратко)
                     echo "=== Bandit Report Summary ==="
-                    jq '.results[] | "\(.issue_severity): \(.test_name) in \(.filename):\(.line_number)"' bandit_report.json
+                    cat bandit_report.json
                     
                     # Проверяем CRITICAL-уязвимости
                     if jq -e '.results[] | select(.issue_severity == "CRITICAL")' bandit_report.json >/dev/null; then
