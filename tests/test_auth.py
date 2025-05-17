@@ -17,4 +17,4 @@ def test_register_user(client):
         'confirm_password': 'testpassword'
     }, follow_redirects=True)
     
-    assert b'успешно зарегистрированы' in response.data
+    assert 'успешно зарегистрированы'.encode('utf-8') in response.data
