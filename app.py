@@ -9,6 +9,8 @@ from flask_wtf.file import FileField, FileAllowed
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
+from prometheus_flask_exporter import PrometheusMetrics
+from prometheus_client import Counter
 
 from database import db, User, AuctionItem, bcrypt, Bid
 from forms import AddItemForm, BidForm
@@ -24,6 +26,12 @@ bcrypt.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+metrics = PrometheusMetrics(app)
+
+auction_created_counter = Counter('auction_created_total', 'Количество созданных аукционов')
+bid_placed_counter = Counter('bid_placed_total', 'Количество сделанных ставок')
+auction_ended_counter = Counter('auction_ended_total', 'Количество завершённых аукционов')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -67,6 +75,7 @@ def add_item():
         )
         db.session.add(new_item)
         db.session.commit()
+        auction_created_counter.inc()
         flash("Товар успешно добавлен!", "success")
         return redirect(url_for('home'))
     return render_template('add_item.html', form=form)
@@ -107,6 +116,7 @@ def auction(item_id):
             bid = Bid(amount=form.amount.data, user_id=current_user.id, item_id=item.id)
             db.session.add(bid)
             db.session.commit()
+            bid_placed_counter.inc()
             flash('Ставка принята!', 'success')
         else:
             flash('Ставка должна быть выше текущей максимальной!', 'danger')
@@ -130,6 +140,7 @@ def end_auction(item_id):
 
     winner = item.get_winner()
     item.is_active = False  # Делаем аукцион неактивным
+    auction_ended_counter.inc()
     db.session.commit()
 
     if winner:

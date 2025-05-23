@@ -3,3 +3,4 @@ flask_sqlalchemy
 flask_wtf
 flask_login
 flask_bcrypt
+prometheus_flask_exporter

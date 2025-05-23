@@ -13,6 +13,8 @@ services:
     restart: always
     volumes:
       - ./static:/app/static
+    networks:
+      - monitor-net
 
   db:
     image: mysql:5.7
@@ -21,12 +23,34 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: app_bd
+      MYSQL_DATABASE: app_db
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     volumes:
       - mysql_data:/var/lib/mysql
     restart: always
+  
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - monitor-net
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitor-net
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+networks:
+  monitor-net:
 
 volumes:
   mysql_data:
+  grafana-storage:
