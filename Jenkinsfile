@@ -145,6 +145,16 @@ pipeline {
                 sh 'docker rmi $DOCKER_IMAGE:latest'
             }
         }
+
+        stage('Deploy App') {
+            steps {
+                sh '''
+                    docker-compose down || true
+                    docker-compose pull
+                    docker-compose up -d
+                '''
+            }
+}
     }
 
     post {
