@@ -105,11 +105,7 @@ pipeline {
                         '''
                     }
                 }
-            }
-        }
-        
-        stage('Run Build and Test') {
-            parallel {
+
                 stage('Code Quality') {
                     steps {
                         sh '''
@@ -122,13 +118,13 @@ pipeline {
                         '''
                     }
                 }
-
-                stage('Build Docker Image') {
-                    steps {
-                        sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER .'
-                        sh 'docker tag $DOCKER_IMAGE:$BUILD_NUMBER $DOCKER_IMAGE:latest'
-                    }
-                }
+            }
+        }
+        
+        stage('Run Build and Test') {
+            steps {
+                sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER .'
+                sh 'docker tag $DOCKER_IMAGE:$BUILD_NUMBER $DOCKER_IMAGE:latest'
             }
         }
 
