@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, Response
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, DecimalField
@@ -10,7 +10,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 from prometheus_flask_exporter import PrometheusMetrics
-from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter
 
 from database import db, User, AuctionItem, bcrypt, Bid
 from forms import AddItemForm, BidForm
@@ -163,10 +163,6 @@ def raise_bid(item_id):
     db.session.commit()
     flash(f'Ставка повышена до {new_bid_amount:.2f} руб.', 'success')
     return redirect(url_for('auction', item_id=item.id))
-
-@app.route("/metrics")
-def metrics_endpoint():
-    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 @app.route('/logout')
 @login_required
